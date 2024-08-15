@@ -107,6 +107,15 @@ class TTTGame:
         self.board = Board()
         self.human = Human()
         self.computer = Computer()
+    
+    @staticmethod
+    def _join_or(lst, sep=', ', word='or'):
+        if len(lst) < 2:
+            return lst[0]
+        if len(lst) == 2:
+            return f'{word} '.join(lst)
+        
+        return f'{sep}'.join(lst[:-1]) + f'{sep}{word} {lst[-1]}'
 
     def play(self):
         self.display_welcome_message()
@@ -150,14 +159,13 @@ class TTTGame:
 
         return False
 
-
     def human_moves(self):
         choice = None
 
         while True:
             valid_choices = self.board.unused_sqaures()
             choices_list = [str(choice) for choice in valid_choices]
-            choices_str = ', '.join(choices_list)
+            choices_str = TTTGame._join_or(choices_list)
             choice = input(f'Choose a square {choices_str}: ')
             try:
                 choice = int(choice)
