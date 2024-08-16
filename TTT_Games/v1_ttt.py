@@ -66,6 +66,9 @@ class Board:
     def count_markers_for(self, player, keys):
         markers = [self.squares[key].marker for key in keys]
         return markers.count(player.marker)
+    
+    def is_unused_sqaure(self, key):
+        return self.squares[key].is_unused()
 
     def display_with_clear(self):
         clear_screen()
@@ -205,8 +208,18 @@ class TTTGame:
         self.board.mark_square_at(choice, self.human.marker)
 
     def computer_moves(self):
-        choice = random.choice(self.board.unused_sqaures())
+        choice = self.defensive_computer_move()
+
+        if not choice:
+            choice = random.choice(self.board.unused_sqaures())
         self.board.mark_square_at(choice, self.computer.marker)
+
+    def defensive_computer_move(self):
+        for row in TTTGame.POSSIBLE_WINNING_ROWS:
+            key = self.find_winning_square(row)
+            if key:
+                return key
+        return None
 
     def is_game_over(self):
         return self.board.is_full() or self.someone_won()
@@ -216,6 +229,16 @@ class TTTGame:
 
     def three_in_a_row(self, player, row):
         return self.board.count_markers_for(player, row) == 3
+
+    def two_in_a_row(self, player, row):
+        return self.board.count_markers_for(player, row) == 2
+
+    def find_winning_square(self, row):
+        if self.two_in_a_row(self.human, row):
+            for key in row:
+                if self.board.is_unused_sqaure(key):
+                    return key
+        return None
 
 game = TTTGame()
 game.play()
