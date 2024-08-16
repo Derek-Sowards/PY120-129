@@ -217,9 +217,6 @@ class TTTGame:
             choice = self.pick_random_square()
         self.board.mark_square_at(choice, self.computer.marker)
 
-# if the square 5 is open. computer should pick that as it's choice
-#     if computer has a row with 2 already marked squares
-#         it should finish off that row by picking the missing square
     def offensive_computer_move(self):
         for row in TTTGame.POSSIBLE_WINNING_ROWS:
             key = self.find_winning_square_for(self.computer, row)
