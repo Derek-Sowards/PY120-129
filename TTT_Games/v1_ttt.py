@@ -28,7 +28,7 @@ class Square:
 
 class Board:
     def __init__(self):
-        self.squares = {x: Square() for x in range(1, 10)}
+        self.reset()
 
     def display(self):
         print()
@@ -71,6 +71,9 @@ class Board:
         clear_screen()
         print('\n')
         self.display()
+    
+    def reset(self):
+        self.squares = {x: Square() for x in range(1, 10)}
 
 class Player:
     def __init__(self, marker):
@@ -108,6 +111,10 @@ class TTTGame:
         self.human = Human()
         self.computer = Computer()
     
+    def _reset_game(self):
+        clear_screen()
+        self.board.reset()
+    
     @staticmethod
     def _join_or(lst, sep=', ', word='or'):
         if len(lst) < 2:
@@ -116,13 +123,21 @@ class TTTGame:
             return f'{word} '.join(lst)
         
         return f'{sep}'.join(lst[:-1]) + f'{sep}{word} {lst[-1]}'
-
-    def play(self):
-        self.display_welcome_message()
+    
+    def play_again(self):
+        while True:
+            answer = input('Would you like to play again? (y/n): ').strip().lower()
+            if answer[0] == 'y':
+                return True
+            elif answer[0] == 'n':
+                return False
+            print("Sorry that's not a valid input.")
+            
+    def play_one_game(self):
+        self.board.reset()
         self.board.display()
 
         while True:
-
             self.human_moves()
             if self.is_game_over():
                 break
@@ -130,10 +145,22 @@ class TTTGame:
             self.computer_moves()
             if self.is_game_over():
                 break
+
             self.board.display_with_clear()
 
         self.board.display_with_clear()
         self.display_results()
+
+    def play(self):
+        self.display_welcome_message()
+
+        while True:
+            self.play_one_game()
+            if not self.play_again():
+                break
+            clear_screen()
+            print('\n')
+
         self.display_goodbye_message()
 
     def display_welcome_message(self):
