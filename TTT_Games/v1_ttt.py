@@ -81,6 +81,10 @@ class Board:
 class Player:
     def __init__(self, marker):
         self.marker = marker
+        self.wins = 0
+    
+    def reset_score(self):
+        self.wins = 0
 
     @property
     def marker(self):
@@ -89,6 +93,17 @@ class Player:
     @marker.setter
     def marker(self, value):
         self._marker = value
+    
+    def increase_score(self):
+        self.wins += 1
+    
+    @property
+    def wins(self):
+        return self._wins
+    
+    @wins.setter
+    def wins(self, value):
+        self._wins = value
 
 class Human(Player):
     def __init__(self):
@@ -99,6 +114,7 @@ class Computer(Player):
         super().__init__(Square.COMPUTER_MARKER)
 
 class TTTGame:
+    TOTAL_ROUNDS = 3
     POSSIBLE_WINNING_ROWS = (
         (1, 2, 3),
         (4, 5, 6),
@@ -135,30 +151,12 @@ class TTTGame:
             elif answer[0] == 'n':
                 return False
             print("Sorry that's not a valid input.")
-            
-    def play_one_game(self):
-        self.board.reset()
-        self.board.display()
-
-        while True:
-            self.human_moves()
-            if self.is_game_over():
-                break
-
-            self.computer_moves()
-            if self.is_game_over():
-                break
-
-            self.board.display_with_clear()
-
-        self.board.display_with_clear()
-        self.display_results()
 
     def play(self):
         self.display_welcome_message()
 
         while True:
-            self.play_one_game()
+            self.play_game_of()
             if not self.play_again():
                 break
             clear_screen()
@@ -166,21 +164,70 @@ class TTTGame:
 
         self.display_goodbye_message()
 
+    def play_game_of(self):
+        while not self.is_game_over():
+            self.play_round()
+        self.display_game_results()
+        self.human.reset_score()
+        self.computer.reset_score()
+
+    def play_round(self):
+        self.board.reset()
+        self.board.display()
+
+        while True:
+            self.human_moves()
+            if self.is_round_over():
+                break
+
+            self.computer_moves()
+            if self.is_round_over():
+                break
+
+            self.board.display_with_clear()
+
+        self.board.display_with_clear()
+        self.display_round_results()
+        self.update_score()
+        self.display_score()
+
+    def is_game_over(self):
+        return max(self.computer.wins, self.human.wins) == TTTGame.TOTAL_ROUNDS
+    
     def display_welcome_message(self):
         clear_screen()
-        print("Welcome to Tic Tac Toe!")
+        print(f"Welcome to Tic Tac Toe! First to {TTTGame.TOTAL_ROUNDS} wins!")
         print()
 
     def display_goodbye_message(self):
         print("Thanks for playing Tic Tac Toe! Goodbye!")
-
-    def display_results(self):
+    
+    def update_score(self):
         if self.is_winner(self.human):
-            print("You won! Congratulations!")
+            self.human.increase_score()
         elif self.is_winner(self.computer):
-            print("Computer won! Better luck next time!")
+            self.computer.increase_score()
         else:
-            print("A Tie Game! How boring.")
+            pass
+        
+
+    def display_score(self):
+        print(F"SCOREBOARD: [Human- {self.human.wins}]  [Computer- {self.computer.wins}]")
+
+    def display_round_results(self):
+        clear_screen()
+        if self.is_winner(self.human):
+            print("You won!")
+        elif self.is_winner(self.computer):
+            print("Computer won!")
+        else:
+            print("A Tie Round! How boring.")
+
+    def display_game_results(self):
+        if self.human.wins >= 3:
+            print("You won the game!!! Congratulations")
+        else:
+            print("Computer wins the Game! Better luck next time!")
 
     def is_winner(self, player):
         for row in TTTGame.POSSIBLE_WINNING_ROWS:
@@ -245,7 +292,7 @@ class TTTGame:
                     return key
         return None
 
-    def is_game_over(self):
+    def is_round_over(self):
         return self.board.is_full() or self.someone_won()
 
     def someone_won(self):
