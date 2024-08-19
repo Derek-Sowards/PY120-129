@@ -1,5 +1,9 @@
 import random
 import os
+import time
+
+def wait(seconds):
+    time.sleep(seconds)
 
 def clear_screen():
     os.system('clear')
@@ -66,7 +70,7 @@ class Board:
     def count_markers_for(self, player, keys):
         markers = [self.squares[key].marker for key in keys]
         return markers.count(player.marker)
-    
+
     def is_unused_sqaure(self, key):
         return self.squares[key].is_unused()
 
@@ -74,7 +78,7 @@ class Board:
         clear_screen()
         print('\n')
         self.display()
-    
+
     def reset(self):
         self.squares = {x: Square() for x in range(1, 10)}
 
@@ -82,7 +86,7 @@ class Player:
     def __init__(self, marker):
         self.marker = marker
         self.wins = 0
-    
+
     def reset_score(self):
         self.wins = 0
 
@@ -93,14 +97,14 @@ class Player:
     @marker.setter
     def marker(self, value):
         self._marker = value
-    
+
     def increase_score(self):
         self.wins += 1
-    
+
     @property
     def wins(self):
         return self._wins
-    
+
     @wins.setter
     def wins(self, value):
         self._wins = value
@@ -129,26 +133,38 @@ class TTTGame:
         self.board = Board()
         self.human = Human()
         self.computer = Computer()
-    
+        self.first_player = self.human
+
+    @property
+    def first_player(self):
+        return self._first_player
+
+    @first_player.setter
+    def first_player(self, new_player):
+        if not isinstance(new_player, Player):
+            raise TypeError("New player must be a player object")
+        self._first_player = new_player
+
     def _reset_game(self):
         clear_screen()
         self.board.reset()
-    
+
     @staticmethod
     def _join_or(lst, sep=', ', word='or'):
         if len(lst) < 2:
             return lst[0]
         if len(lst) == 2:
-            return f'{word} '.join(lst)
-        
+            return f' {word} '.join(lst)
+
         return f'{sep}'.join(lst[:-1]) + f'{sep}{word} {lst[-1]}'
-    
+
     def play_again(self):
         while True:
-            answer = input('Would you like to play again? (y/n): ').strip().lower()
+            answer = input('Would you like to play again? (y/n): ')
+            answer.strip().lower()
             if answer[0] == 'y':
                 return True
-            elif answer[0] == 'n':
+            if answer[0] == 'n':
                 return False
             print("Sorry that's not a valid input.")
 
@@ -167,33 +183,51 @@ class TTTGame:
     def play_game_of(self):
         while not self.is_game_over():
             self.play_round()
+            self.first_player = self.toggle_player(self.first_player)
         self.display_game_results()
         self.human.reset_score()
         self.computer.reset_score()
 
     def play_round(self):
+        current_player = self.first_player
         self.board.reset()
         self.board.display()
+        self.display_players_turn()
 
         while True:
-            self.human_moves()
-            if self.is_round_over():
-                break
-
-            self.computer_moves()
+            self.player_moves(current_player)
             if self.is_round_over():
                 break
 
             self.board.display_with_clear()
+            current_player = self.toggle_player(current_player)
 
         self.board.display_with_clear()
         self.display_round_results()
         self.update_score()
         self.display_score()
+        wait(1.5)
+
+    def display_players_turn(self):
+        if self.first_player == self.human:
+            print("Your turn to move first!")
+        else:
+            print("Computer's turn to move first!")
+            wait(2)
+    def toggle_player(self, player):
+        if player is self.human:
+            return self.computer
+        return self.human
+
+    def player_moves(self, player):
+        if player is self.human:
+            self.human_moves()
+        else:
+            self.computer_moves()
 
     def is_game_over(self):
         return max(self.computer.wins, self.human.wins) == TTTGame.TOTAL_ROUNDS
-    
+
     def display_welcome_message(self):
         clear_screen()
         print(f"Welcome to Tic Tac Toe! First to {TTTGame.TOTAL_ROUNDS} wins!")
@@ -201,7 +235,7 @@ class TTTGame:
 
     def display_goodbye_message(self):
         print("Thanks for playing Tic Tac Toe! Goodbye!")
-    
+
     def update_score(self):
         if self.is_winner(self.human):
             self.human.increase_score()
@@ -209,10 +243,10 @@ class TTTGame:
             self.computer.increase_score()
         else:
             pass
-        
 
     def display_score(self):
-        print(F"SCOREBOARD: [Human- {self.human.wins}]  [Computer- {self.computer.wins}]")
+        print(F"SCOREBOARD: [Human- {self.human.wins}] "
+              f" [Computer- {self.computer.wins}]")
 
     def display_round_results(self):
         clear_screen()
@@ -266,10 +300,10 @@ class TTTGame:
 
     def offensive_computer_move(self):
         return self.find_winning_square_for(self.computer)
-    
+
     def defensive_computer_move(self):
         return self.find_winning_square_for(self.human)
-    
+
     def pick_center_square(self):
         if 5 in self.board.unused_sqaures():
             return 5
