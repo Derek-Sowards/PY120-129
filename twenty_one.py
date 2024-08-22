@@ -12,7 +12,6 @@ def print_terminal_line():
 def wait(seconds):
     time.sleep(seconds)
 
-
 class Card:
     SUITS = ['♣','♡', '♠', '♢']
     RANKS = [str(num) for num in range(2, 11)] + ['J', 'Q', 'K', 'A']
@@ -162,14 +161,13 @@ class TwentyOneGame:
             self.play_round()
             if self.human.bank == 0:
                 break
-            elif self.human.is_rich():
+            if self.human.is_rich():
                 break
-            elif not self.play_again():
+            if not self.play_again():
                 break
             self.reset_hands()
 
         self.display_goodbye_message()
-
 
     def play_round(self):
         self.deal_cards()
@@ -194,8 +192,6 @@ class TwentyOneGame:
             self.human.increase_bank()
         elif winner == self.dealer:
             self.human.decrease_bank()
-        else:
-            pass
 
     def display_bank(self):
         print(f"You have ${self.human.bank}!")
@@ -212,10 +208,9 @@ class TwentyOneGame:
                   f" You still have your ${self.human.bank} left! Nice job.\n")
 
     def deal_cards(self):
-        self.human.hand.add_card(self.deck.deal())
-        self.dealer.hand.add_card(self.deck.deal())
-        self.human.hand.add_card(self.deck.deal())
-        self.dealer.hand.add_card(self.deck.deal())
+        for _ in range(2):
+            self.human.hand.add_card(self.deck.deal())
+            self.dealer.hand.add_card(self.deck.deal())
 
     def show_first_cards(self):
         clear_screen()
@@ -233,13 +228,12 @@ class TwentyOneGame:
         while True:
             answer = input("Would you like to hit or stay?"
                            " (h/s): ").strip().lower()
-            if answer == '':
+            if not answer:
                 print("Invalid input, please type 'h' to hit or 's' to stay.")
                 continue
-
             if answer[0] in TwentyOneGame.HIT:
                 return True
-            elif answer[0] in TwentyOneGame.STAY:
+            if answer[0] in TwentyOneGame.STAY:
                 return False
             print("Invalid input, Try again.")
 
@@ -302,7 +296,7 @@ class TwentyOneGame:
     def display_goodbye_message(self):
         clear_screen()
         self.display_winnings()
-        print("Thanks for playing twenty-one!")
+        print("Thanks for playing twenty-one!\n")
 
     def play_again(self):
         while True:
@@ -311,9 +305,9 @@ class TwentyOneGame:
             if answer == '':
                 print("Sorry that's not a valid input.")
                 continue
-            elif answer[0] == 'y':
+            if answer[0] == 'y':
                 return True
-            elif answer[0] == 'n':
+            if answer[0] == 'n':
                 return False
             print("Sorry that's not a valid input.")
 
@@ -327,10 +321,10 @@ class TwentyOneGame:
                 print("Invalid input. Please try again.")
                 continue
 
-            elif answer[0] == 'y':
+            if answer[0] == 'y':
                 self.display_instructions()
                 break
-            elif answer[0] == 'n':
+            if answer[0] == 'n':
                 break
 
             print("Invalid input. Please try again.")
